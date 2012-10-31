@@ -67,4 +67,16 @@ suite 'FruitHunt', ->
       @game.move-bot name, \west
       @game.get-position name .should.eql [0, 1]
 
+  suite 'tracking bot scores', ->
+    test 'should start all bots with 0 for all items'
+    test 'should be able to add full points to a bot'
+    test 'should be able to add half points to a bot'
+
+  suite 'handling bot moves', ->
+    test "should handle multiple bot's moves at once"
+    test "should award a point when a single bot takes an item"
+    test "should award half a point each when both bot's take the same piece"
+    test "should award a full point each when both bot's take different pieces"
+    test "should empty a square when a bot takes that item"
+
   suite 'calculating the winner', ->
