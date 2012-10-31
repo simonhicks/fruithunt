@@ -14,8 +14,8 @@ suite 'FruitHunt', ->
 
     suite 'managing the board', ->
       test 'should clone the board it is given', ->
-        @game.board.should.not.equal board
-        @game.board.should.eql board
+        @game._board.should.not.equal board
+        @game._board.should.eql board
 
       test 'should know the item at each board location', ->
         @game.get-item-at [0, 0] .should.equal 0
@@ -168,4 +168,96 @@ suite 'FruitHunt', ->
         @game.get-score bill, 1 .should.equal 1
         @game.get-score ben, 2 .should.equal 1
 
+  suite 'managing items', ->
+    board = [
+      [0, 0, 1, 1],
+      [0, 0, 2, 2],
+      [0, 0, 0, 3],
+      [0, 0, 0, 4]
+    ]
+
+    setup ->
+      @game = new FruitHunt board
+
+    test 'should know what types of item there are in the game', ->
+      @game._types.should.eql [1, 2, 3, 4]
+
+    test 'should know how many items of each type there are remaining', ->
+      @game.get-item-count 1 .should.equal 2
+      @game.set-item-at([2, 0], 0)
+      @game.get-item-count 1 .should.equal 1
+      @game.set-item-at [3, 0], 0
+      @game.get-item-count 1 .should.equal 0
+
+    test "should remember what types there are, even after they've been taken", ->
+      @game.set-item-at [3, 2], 0
+      @game.set-item-at [3, 3], 0
+      @game.get-item-count 3 .should.equal 0
+      @game.get-item-count 4 .should.equal 0
+      @game._types.should.eql [1, 2, 3, 4]
+
   suite 'calculating the winner', ->
+    suite 'for an individual type', ->
+      bill = \Bill
+      ben = \Ben
+
+      suite 'with only one item type', ->
+        setup ->
+          @game = new FruitHunt [
+            [0, 0, 1],
+            [0, 0, 1],
+            [0, 0, 1]
+          ]
+          @game.add-bot bill, [0, 0], {}
+          @game.add-bot ben, [0, 0], {}
+
+        test 'when bill or ben can win', ->
+          should.not.exist @game.get-winner!
+
+        test 'when bill has already won', ->
+          for i in [1 to 4]
+            @game.award-point bill, 1
+          @game.get-winner!.should.equal bill
+
+        test "when bill can win or draw, but ben can't win", ->
+          for i in [1 to 3]
+            @game.award-point bill, 1
+          should.not.exist @game.get-winner!
+
+      suite 'with 3 item types', ->
+        setup ->
+          @game = new FruitHunt [
+            [0, 0, 1],
+            [0, 0, 2],
+            [0, 0, 3]
+          ]
+          @game.add-bot bill, [0, 0], {}
+          @game.add-bot ben, [0, 0], {}
+
+        test 'when bill or ben can win', ->
+          should.not.exist @game.get-winner!
+
+        test 'when bill has already won', ->
+          for i in [1 to 2]
+            @game.award-point bill, 1 # bill has one type 1
+          for i in [1 to 2]
+            @game.award-point bill, 2 # bill has one type 2
+          @game.get-winner!.should.equal bill
+
+        test "when bill can win or draw, but ben can't win", ->
+          for i in [1 to 2]
+            @game.award-point bill, 1 # bill has won type 1
+          @game.award-point bill, 2 # bill can win or draw type 2
+          should.not.exist @game.get-winner!
+
+        test "when it's finished and it's a draw", ->
+          @game = new FruitHunt [[0, 0], [0, 0]]
+          @game.add-bot bill, [0, 0], {}
+          @game.add-bot ben, [0, 0], {}
+          @game.award-point bill, 1
+          @game.award-point ben, 2
+          @game.get-winner!.should.equal false
+
+  suite 'handling invalid situations', ->
+    test 'should throw an exception when there are no items in the board'
+    test 'should throw an exception when there are more than 2 bots'
