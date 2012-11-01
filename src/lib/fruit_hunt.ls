@@ -33,6 +33,8 @@ exports.FruitHunt = class FruitHunt
     @_board[y][x] = item ? 0
 
   add-bot: (name, position, bot) ->
+    if _.keys @_bots .length >= 2
+      throw new Error 'Only 2 bots are allowed per game'
     @_bots[name] = bot ? {}
     @set-position name, position
 

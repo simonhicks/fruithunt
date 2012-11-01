@@ -239,9 +239,8 @@ suite 'FruitHunt', ->
 
         test 'when bill has already won', ->
           for i in [1 to 2]
-            @game.award-point bill, 1 # bill has one type 1
-          for i in [1 to 2]
-            @game.award-point bill, 2 # bill has one type 2
+            @game.award-point bill, 1 # bill has won type 1
+            @game.award-point bill, 2 # bill has won type 2
           @game.get-winner!.should.equal bill
 
         test "when bill can win or draw, but ben can't win", ->
@@ -261,6 +260,10 @@ suite 'FruitHunt', ->
   suite 'handling invalid situations', ->
     test 'should throw an exception when there are no items in the board', ->
       board-without-items = [[0, 0], [0, 0]]
-      (-> new FruitHunt board-without-items) .should.throw!
+      (-> new FruitHunt board-without-items).should.throw!
 
-    test 'should throw an exception when there are more than 2 bots'
+    test 'should throw an exception when there are more than 2 bots', ->
+      game = new FruitHunt [[0, 0], [0, 1]]
+      game.add-bot \a, [0, 0]
+      game.add-bot \b, [0, 0]
+      (-> game.add-bot \c, [0, 0]).should.throw!
