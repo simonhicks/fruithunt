@@ -46,14 +46,14 @@ suite 'FruitHunt', ->
   suite 'moving bots', ->
     board = [
       [0, 0, 0],
-      [0, 0, 0],
+      [0, 1, 0],
       [0, 0, 0]
     ]
     name = 'bobby'
 
     setup ->
       @game = new FruitHunt board
-      @game.add-bot name, [1, 1], {}
+      @game.add-bot name, [1, 1]
 
     test 'should be able to move a bot north', ->
       @game.move-bot name, \north
@@ -86,7 +86,7 @@ suite 'FruitHunt', ->
 
     setup ->
       @game = new FruitHunt board
-      @game.add-bot name, [0, 0], {}
+      @game.add-bot name, [0, 0]
 
     test 'should start all bots with 0 for all items', ->
       @game.get-score name, 1 .should.equal 0
@@ -184,7 +184,7 @@ suite 'FruitHunt', ->
 
     test 'should know how many items of each type there are remaining', ->
       @game.get-item-count 1 .should.equal 2
-      @game.set-item-at([2, 0], 0)
+      @game.set-item-at [2, 0], 0
       @game.get-item-count 1 .should.equal 1
       @game.set-item-at [3, 0], 0
       @game.get-item-count 1 .should.equal 0
@@ -208,8 +208,8 @@ suite 'FruitHunt', ->
             [0, 0, 1],
             [0, 0, 1]
           ]
-          @game.add-bot bill, [0, 0], {}
-          @game.add-bot ben, [0, 0], {}
+          @game.add-bot bill, [0, 0]
+          @game.add-bot ben, [0, 0]
 
         test 'when bill or ben can win', ->
           should.not.exist @game.get-winner!
@@ -231,8 +231,8 @@ suite 'FruitHunt', ->
             [0, 0, 2],
             [0, 0, 3]
           ]
-          @game.add-bot bill, [0, 0], {}
-          @game.add-bot ben, [0, 0], {}
+          @game.add-bot bill, [0, 0]
+          @game.add-bot ben, [0, 0]
 
         test 'when bill or ben can win', ->
           should.not.exist @game.get-winner!
@@ -251,13 +251,16 @@ suite 'FruitHunt', ->
           should.not.exist @game.get-winner!
 
         test "when it's finished and it's a draw", ->
-          @game = new FruitHunt [[0, 0], [0, 0]]
+          @game = new FruitHunt [[1, 0], [0, 0]]
           @game.add-bot bill, [0, 0], {}
           @game.add-bot ben, [0, 0], {}
-          @game.award-point bill, 1
+          @game.handle-takes [bill]
           @game.award-point ben, 2
           @game.get-winner!.should.equal false
 
   suite 'handling invalid situations', ->
-    test 'should throw an exception when there are no items in the board'
+    test 'should throw an exception when there are no items in the board', ->
+      board-without-items = [[0, 0], [0, 0]]
+      (-> new FruitHunt board-without-items) .should.throw!
+
     test 'should throw an exception when there are more than 2 bots'

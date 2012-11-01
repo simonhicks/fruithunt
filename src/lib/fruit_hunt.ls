@@ -2,10 +2,17 @@ _ = require \underscore
 
 exports.FruitHunt = class FruitHunt
   (board, @_bots = {})->
-    @_board = []
-    for row in board
-      @_board.push [item for item in row]
+    @_clone-board board
     @_types = @get-item-types!
+
+  _clone-board: (board) ->
+    find-item = (coll) -> _.find(coll, (> 0))
+    if (board |> _.flatten |> find-item)
+      @_board = []
+      for row in board
+        @_board.push [item for item in row]
+    else
+      throw new Error "Illegal board: There are no items!"
 
   get-item-iterator: ->
     _ @_board .chain!.flatten!.filter -> it
@@ -26,7 +33,7 @@ exports.FruitHunt = class FruitHunt
     @_board[y][x] = item ? 0
 
   add-bot: (name, position, bot) ->
-    @_bots[name] = bot
+    @_bots[name] = bot ? {}
     @set-position name, position
 
   get-bot: (name) ->
@@ -93,8 +100,9 @@ exports.FruitHunt = class FruitHunt
   # given a particular bot's lead in a contest and the remaining number of points available, this returns a best and worst case scenario for that bot.
   # 1 means a victory, 0 means a draw, -1 means a loss
   #
-  # @param lead int The specified bot's lead
-  # @param remaining int The number of points remaining in this contest
+  # @param lead       int The specified bot's lead
+  # @param remaining  int The number of points remaining in this contest
+  #
   # @returns [best, worst]
   best-worst = (lead, remaining) ->
     | (lead - remaining) > 0 => [1, 1]
