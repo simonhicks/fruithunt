@@ -1,8 +1,8 @@
 should = require \should
 
-{FruitHunt} = require '../lib/fruit_hunt'
+{Game} = require '../../lib/fruit-hunt'
 
-suite 'FruitHunt', ->
+suite 'Game', ->
   suite 'newly created', ->
     board = [
       [0, 1],
@@ -10,7 +10,7 @@ suite 'FruitHunt', ->
     ]
 
     setup ->
-      @game = new FruitHunt board
+      @game = new Game board
 
     suite 'managing the board', ->
       test 'should clone the board it is given', ->
@@ -52,7 +52,7 @@ suite 'FruitHunt', ->
     name = 'bobby'
 
     setup ->
-      @game = new FruitHunt board
+      @game = new Game board
       @game.add-bot name, [1, 1]
 
     test 'should be able to move a bot north', ->
@@ -85,7 +85,7 @@ suite 'FruitHunt', ->
     name = 'Bobby'
 
     setup ->
-      @game = new FruitHunt board
+      @game = new Game board
       @game.add-bot name, [0, 0]
 
     test 'should start all bots with 0 for all items', ->
@@ -119,7 +119,7 @@ suite 'FruitHunt', ->
 
     setup ->
       @decisions = {}
-      @game = new FruitHunt board
+      @game = new Game board
       @game.add-bot bill, start, {}
       @game.add-bot ben, start, {}
 
@@ -177,7 +177,7 @@ suite 'FruitHunt', ->
     ]
 
     setup ->
-      @game = new FruitHunt board
+      @game = new Game board
 
     test 'should know what types of item there are in the game', ->
       @game._types.should.eql [1, 2, 3, 4]
@@ -203,7 +203,7 @@ suite 'FruitHunt', ->
 
       suite 'with only one item type', ->
         setup ->
-          @game = new FruitHunt [
+          @game = new Game [
             [0, 0, 1],
             [0, 0, 1],
             [0, 0, 1]
@@ -226,7 +226,7 @@ suite 'FruitHunt', ->
 
       suite 'with 3 item types', ->
         setup ->
-          @game = new FruitHunt [
+          @game = new Game [
             [0, 0, 1],
             [0, 0, 2],
             [0, 0, 3]
@@ -250,7 +250,7 @@ suite 'FruitHunt', ->
           should.not.exist @game.get-winner!
 
         test "when it's finished and it's a draw", ->
-          @game = new FruitHunt [[1, 0], [0, 0]]
+          @game = new Game [[1, 0], [0, 0]]
           @game.add-bot bill, [0, 0], {}
           @game.add-bot ben, [0, 0], {}
           @game.handle-takes [bill]
@@ -260,10 +260,10 @@ suite 'FruitHunt', ->
   suite 'handling invalid situations', ->
     test 'should throw an exception when there are no items in the board', ->
       board-without-items = [[0, 0], [0, 0]]
-      (-> new FruitHunt board-without-items).should.throw!
+      (-> new Game board-without-items).should.throw!
 
     test 'should throw an exception when there are more than 2 bots', ->
-      game = new FruitHunt [[0, 0], [0, 1]]
+      game = new Game [[0, 0], [0, 1]]
       game.add-bot \a, [0, 0]
       game.add-bot \b, [0, 0]
       (-> game.add-bot \c, [0, 0]).should.throw!

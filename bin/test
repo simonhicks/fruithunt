@@ -4,5 +4,5 @@ if [[ "$@" =~ "spec" ]]
 then
   mocha -u tdd "$@" 
 else
-  mocha -u tdd "$@" spec/
+  mocha -u tdd "$@" spec/fruit-hunt/
 fi

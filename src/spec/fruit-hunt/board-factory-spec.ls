@@ -1,7 +1,7 @@
 should = require \should
 _ = require \underscore
 
-{BoardFactory} = require '../lib/board-factory'
+{BoardFactory} = require '../../lib/fruit-hunt'
 
 class ControlledRandom
   (@next-random = null) ->
