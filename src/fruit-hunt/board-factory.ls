@@ -1,19 +1,24 @@
+{Board} = require './board'
+
 exports.BoardFactory = class BoardFactory
   @create-board = ({min-size, max-size}:opts = {}) ->
     new this min-size, max-size .get-board!
 
   (@min-size=5,@max-size=15) ->
-    @board = []
+    @cells = []
 
-  get-board: ->
-    if @board.length == 0
+  get-cells: ->
+    if @cells.length == 0
       @initialize-cells!
       @add-items!
-    @board
+    @cells
+
+  get-board: ->
+    new Board @get-cells!
 
   initialize-cells: ->
     for row in [0 til @get-height!]
-      @board.push [0 for cell in [0 til @get-width!]]
+      @cells.push [0 for cell in [0 til @get-width!]]
 
   add-items: ->
     for type in @get-types!
@@ -33,8 +38,8 @@ exports.BoardFactory = class BoardFactory
     do
       x = Math.min Math.floor(@random! * @get-width!), @get-width!
       y = Math.min Math.floor(@random! * @get-height!), @get-height!
-    until @board[y][x] == 0
-    @board[y][x] = type
+    until @cells[y][x] == 0
+    @cells[y][x] = type
 
   get-width: ->
     unless @width?

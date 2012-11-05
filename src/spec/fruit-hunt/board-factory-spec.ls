@@ -1,7 +1,7 @@
 should = require \should
 _ = require \underscore
 
-{BoardFactory} = require '../../lib/fruit-hunt'
+{BoardFactory, Board} = require '../../fruit-hunt'
 
 class ControlledRandom
   (@next-random = null) ->
@@ -12,12 +12,13 @@ suite "BoardFactory", ->
   suite '.create-board()', ->
     test 'should create a board with the default min/max size values', ->
       board = BoardFactory.create-board!
-      board.should.be.an.instance-of Array
+      board.should.be.an.instance-of Board
 
     test 'should have configurable min/max size', ->
       size = 10
-      board = BoardFactory.create-board min-size: 10, max-size: 10
-      board.should.have.length 10
+      board = BoardFactory.create-board min-size: size, max-size: size
+      board.get-width!.should.equal size
+      board.get-height!.should.equal size
 
   suite 'creating random numbers', ->
     test 'should have Math.random() aliased to BoardFactory.random()', ->
@@ -36,14 +37,14 @@ suite "BoardFactory", ->
     test 'should create a board <= MAX_SIZE', ->
       @rnd.set-next 1
       @factory.initialize-cells!
-      @factory.board.should.have.length 15
-      _.all @factory.get-board!, (-> it.should.have.length 15)
+      @factory.cells.should.have.length 15
+      _.all @factory.get-cells!, (-> it.should.have.length 15)
 
     test 'should create a board >= MIN_SIZE', ->
       @rnd.set-next 0
       @factory.initialize-cells!
-      @factory.get-board!.should.have.length 5
-      _.all @factory.get-board!, (-> it.should.have.length 5)
+      @factory.get-cells!.should.have.length 5
+      _.all @factory.get-cells!, (-> it.should.have.length 5)
 
   suite 'adding items to the board', ->
     test 'number of item types squared should be less than number of squares in the board', ->
@@ -58,14 +59,14 @@ suite "BoardFactory", ->
 
     test 'for item type i, there should be `(i * 2) + 1` items', ->
       factory = new BoardFactory
-      board = factory.get-board!
+      cells = factory.get-cells!
       types = factory.get-types!
       get-item-count = (type) ->
-        _.chain board .flatten! .countBy (-> it) .value![type] ? 0
+        _.chain cells .flatten! .countBy (-> it) .value![type] ? 0
       for i in types
         get-item-count i .should.equal i * 2 + 1
 
     test 'items should be randomly distributed', ->
-      board1 = new BoardFactory! .get-board!
-      board2 = new BoardFactory! .get-board!
-      board1.should.not.eql board2
+      cells1 = new BoardFactory! .get-cells!
+      cells2 = new BoardFactory! .get-cells!
+      cells1.should.not.eql cells2

@@ -1,32 +1,30 @@
 should = require \should
 
-{Game} = require '../../lib/fruit-hunt'
+{Board} = require '../../fruit-hunt'
 
-suite 'Game', ->
+suite 'Board', ->
   suite 'newly created', ->
-    board = [
+    cells = [
       [0, 1],
       [0, 0]
     ]
 
     setup ->
-      @game = new Game board
+      @game = new Board cells
 
-    suite 'managing the board', ->
-      test 'should clone the board it is given', ->
-        @game._board.should.not.equal board
-        @game._board.should.eql board
+    suite 'managing the cells', ->
+      test 'should clone the cells it is given', ->
+        @game._cells.should.not.equal cells
+        @game._cells.should.eql cells
 
       test 'should know the item at each board location', ->
         @game.get-item-at [0, 0] .should.equal 0
         @game.get-item-at [1, 0] .should.equal 1
 
-      test 'should be able to set the item at a board location', ->
-        position = [0, 0]
-        @game.get-item-at position .should.equal 0
-        @game.set-item-at position, 2
-        @game.get-item-at position .should.equal 2
-        @game.set-item-at position, null
+      test 'should be able to clear the item at a board location', ->
+        position = [1, 0]
+        @game.get-item-at position .should.equal 1
+        @game._clear-item-at position
         @game.get-item-at position .should.equal 0
 
     suite 'managing bots', ->
@@ -38,13 +36,13 @@ suite 'Game', ->
         @game.add-bot name, position, bobby
 
       test "should store bots by name", ->
-        @game.get-bot name .should.equal bobby
+        @game._get-bot name .should.equal bobby
 
       test "should keep track of a bot's position", ->
         @game.get-position name .should.eql position
 
   suite 'moving bots', ->
-    board = [
+    cells = [
       [0, 0, 0],
       [0, 1, 0],
       [0, 0, 0]
@@ -52,7 +50,7 @@ suite 'Game', ->
     name = 'bobby'
 
     setup ->
-      @game = new Game board
+      @game = new Board cells
       @game.add-bot name, [1, 1]
 
     test 'should be able to move a bot north', ->
@@ -78,14 +76,14 @@ suite 'Game', ->
       @game.get-position name .should.eql [0, 1]
 
   suite 'tracking bot scores', ->
-    board = [
+    cells = [
       [0, 1],
       [2, 3]
     ]
     name = 'Bobby'
 
     setup ->
-      @game = new Game board
+      @game = new Board cells
       @game.add-bot name, [0, 0]
 
     test 'should start all bots with 0 for all items', ->
@@ -96,19 +94,19 @@ suite 'Game', ->
     test 'should be able to add full points to a bot', ->
       @game.get-score name, 1 .should.equal 0
       @game.get-score name, 2 .should.equal 0
-      @game.award-point name, 1
+      @game._award-point name, 1
       @game.get-score name, 1 .should.equal 1
       @game.get-score name, 2 .should.equal 0
 
     test 'should be able to add half points to a bot', ->
       @game.get-score name, 1 .should.equal 0
       @game.get-score name, 2 .should.equal 0
-      @game.award-point name, 1, true
+      @game._award-point name, 1, true
       @game.get-score name, 1 .should.equal 0.5
       @game.get-score name, 2 .should.equal 0
 
   suite 'handling bot decisions', ->
-    board = [
+    cells = [
       [1, 0, 1],
       [0, 1, 0],
       [2, 0, 0]
@@ -119,7 +117,7 @@ suite 'Game', ->
 
     setup ->
       @decisions = {}
-      @game = new Game board
+      @game = new Board cells
       @game.add-bot bill, start, {}
       @game.add-bot ben, start, {}
 
@@ -134,7 +132,7 @@ suite 'Game', ->
       position = [0, 0]
 
       setup ->
-        @game.set-position bill, position
+        @game._set-position bill, position
 
       test "should award a full point", ->
         @game.get-score bill, 1 .should.equal 0
@@ -153,23 +151,23 @@ suite 'Game', ->
       item2 = [0, 2]
 
       test "should award half a point each when they take the same item", ->
-        @game.set-position bill, item1
-        @game.set-position ben, item1
+        @game._set-position bill, item1
+        @game._set-position ben, item1
         @decisions[bill] = @decisions[ben] = \take
         @game.handle-turn @decisions
         @game.get-score bill, 1 .should.equal 0.5
         @game.get-score ben, 1 .should.equal 0.5
 
       test "should award a full point each when both bot's take different items", ->
-        @game.set-position bill, item1
-        @game.set-position ben, item2
+        @game._set-position bill, item1
+        @game._set-position ben, item2
         @decisions[bill] = @decisions[ben] = \take
         @game.handle-turn @decisions
         @game.get-score bill, 1 .should.equal 1
         @game.get-score ben, 2 .should.equal 1
 
   suite 'managing items', ->
-    board = [
+    cells = [
       [0, 0, 1, 1],
       [0, 0, 2, 2],
       [0, 0, 0, 3],
@@ -177,23 +175,23 @@ suite 'Game', ->
     ]
 
     setup ->
-      @game = new Game board
+      @game = new Board cells
 
     test 'should know what types of item there are in the game', ->
       @game._types.should.eql [1, 2, 3, 4]
 
     test 'should know how many items of each type there are remaining', ->
-      @game.get-item-count 1 .should.equal 2
-      @game.set-item-at [2, 0], 0
-      @game.get-item-count 1 .should.equal 1
-      @game.set-item-at [3, 0], 0
-      @game.get-item-count 1 .should.equal 0
+      @game._get-item-count 1 .should.equal 2
+      @game._clear-item-at [2, 0]
+      @game._get-item-count 1 .should.equal 1
+      @game._clear-item-at [3, 0]
+      @game._get-item-count 1 .should.equal 0
 
     test "should remember what types there are, even after they've been taken", ->
-      @game.set-item-at [3, 2], 0
-      @game.set-item-at [3, 3], 0
-      @game.get-item-count 3 .should.equal 0
-      @game.get-item-count 4 .should.equal 0
+      @game._clear-item-at [3, 2]
+      @game._clear-item-at [3, 3]
+      @game._get-item-count 3 .should.equal 0
+      @game._get-item-count 4 .should.equal 0
       @game._types.should.eql [1, 2, 3, 4]
 
   suite 'calculating the winner', ->
@@ -203,7 +201,7 @@ suite 'Game', ->
 
       suite 'with only one item type', ->
         setup ->
-          @game = new Game [
+          @game = new Board [
             [0, 0, 1],
             [0, 0, 1],
             [0, 0, 1]
@@ -216,17 +214,31 @@ suite 'Game', ->
 
         test 'when bill has already won', ->
           for i in [1 to 4]
-            @game.award-point bill, 1
+            @game._award-point bill, 1
           @game.get-winner!.should.equal bill
 
         test "when bill can win or draw, but ben can't win", ->
           for i in [1 to 3]
-            @game.award-point bill, 1
+            @game._award-point bill, 1
           should.not.exist @game.get-winner!
+
+        test "when it's finished and it's a draw", ->
+          game = new Board [[1, 0], [0, 0]]
+          game.add-bot bill, [0, 0]
+          game.add-bot ben, [0, 0]
+          game._handle-takes [bill, ben]
+          game.get-winner!.should.equal false
+
+        test 'checks all items types (including ones which have all been removed from the board', ->
+          game = new Board [[1, 0], [0, 0]]
+          game.add-bot bill, [0, 0]
+          game.add-bot ben, [0, 0]
+          game._handle-takes [bill]
+          game.get-winner!.should.equal bill
 
       suite 'with 3 item types', ->
         setup ->
-          @game = new Game [
+          @game = new Board [
             [0, 0, 1],
             [0, 0, 2],
             [0, 0, 3]
@@ -239,31 +251,23 @@ suite 'Game', ->
 
         test 'when bill has already won', ->
           for i in [1 to 2]
-            @game.award-point bill, 1 # bill has won type 1
-            @game.award-point bill, 2 # bill has won type 2
+            @game._award-point bill, 1 # bill has won type 1
+            @game._award-point bill, 2 # bill has won type 2
           @game.get-winner!.should.equal bill
 
         test "when bill can win or draw, but ben can't win", ->
           for i in [1 to 2]
-            @game.award-point bill, 1 # bill has won type 1
-          @game.award-point bill, 2 # bill can win or draw type 2
+            @game._award-point bill, 1 # bill has won type 1
+          @game._award-point bill, 2 # bill can win or draw type 2
           should.not.exist @game.get-winner!
-
-        test "when it's finished and it's a draw", ->
-          @game = new Game [[1, 0], [0, 0]]
-          @game.add-bot bill, [0, 0], {}
-          @game.add-bot ben, [0, 0], {}
-          @game.handle-takes [bill]
-          @game.award-point ben, 2
-          @game.get-winner!.should.equal false
 
   suite 'handling invalid situations', ->
     test 'should throw an exception when there are no items in the board', ->
-      board-without-items = [[0, 0], [0, 0]]
-      (-> new Game board-without-items).should.throw!
+      cells-without-items = [[0, 0], [0, 0]]
+      (-> new Board cells-without-items).should.throw!
 
     test 'should throw an exception when there are more than 2 bots', ->
-      game = new Game [[0, 0], [0, 1]]
+      game = new Board [[0, 0], [0, 1]]
       game.add-bot \a, [0, 0]
       game.add-bot \b, [0, 0]
       (-> game.add-bot \c, [0, 0]).should.throw!
