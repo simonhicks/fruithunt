@@ -1,13 +1,21 @@
 _ = require \underscore
 
-# TODO rename this to Board (and change other names so everything is consistent
-
 # FIXME change references to bot names to a more sensible variable name
 exports.Board = class Board
+  NORTH = @NORTH = \north
+  EAST = @EAST = \east
+  SOUTH = @SOUTH = \south
+  WEST = @WEST = \west
+  TAKE = @TAKE = \take
+  PASS = @PASS = \pass
+
   (cells)->
     @_bots = {}
     @_clone-cells cells
     @_types = @_calculate-item-types!
+
+  has-bot: (bot-id) ->
+    @_bots.has-own-property bot-id
 
   get-item-at: ([x, y]:position) ~>
     @_cells[y][x]
@@ -16,17 +24,17 @@ exports.Board = class Board
     {x, y} = @_get-bot name
     [x, y]
 
-  add-bot: (name, position, bot) ->
+  add-bot: (name, position) ->
     if _.keys @_bots .length >= 2
       throw new Error 'Only 2 bots are allowed per game'
     @_bots[name] = bot ? {}
     @_set-position name, position
 
   get-direction = (dir) ->
-    | dir == \north => [0, -1]
-    | dir == \east  => [1, 0]
-    | dir == \south => [0, 1]
-    | dir == \west  => [-1, 0]
+    | dir == NORTH => [0, -1]
+    | dir == EAST  => [1, 0]
+    | dir == SOUTH => [0, 1]
+    | dir == WEST  => [-1, 0]
 
   move-bot: (name, dir) ->
     [x, y] = @get-position name
@@ -129,7 +137,7 @@ exports.Board = class Board
   _handle-moves: (decisions) ->
     takes = []
     for name, decision of decisions
-      if decision is \take
+      if decision is TAKE
         takes.push name
       else
         @move-bot name, decision
