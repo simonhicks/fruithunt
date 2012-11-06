@@ -5,16 +5,8 @@ Script = vm.Script
 
 exports.BotExecutor = class BotExecutor
 
-  @mandatory-args = []
-  @mandatory = (...args) ->
-    @mandatory-args .= concat args
-
-  @optional-args = []
-  @optional = (...args) ->
-    @optional-args .= concat args
-
-  @mandatory 'board', 'botId', 'code'
-  @optional 'logPath'
+  @mandatory-args = <[board botId code]>
+  @optional-args = <[logPath]>
 
   (options) ->
     @_parse-options options
