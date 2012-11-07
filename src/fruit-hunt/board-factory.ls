@@ -32,12 +32,12 @@ exports.BoardFactory = class BoardFactory
       if i > 1000000
         throw new Error "Something went wrong creating a board. Couldn't find an empty space"
       i += 1
-    until @get-cells()[y][x] is 0
-    [x, y]
+    until @get-cells()[x][y] is 0
+    {x: x, y: y}
 
   initialize-cells: ->
-    for row from 0 til @get-height()
-      @cells.push [0 for cell in [0 til @get-width()]]
+    for col from 0 til @get-width()
+      @cells.push [0 for cell in [0 til @get-height()]]
 
   add-items: ->
     for type in @get-types()
@@ -59,8 +59,8 @@ exports.BoardFactory = class BoardFactory
     @types
 
   place-item: (type) ->
-    [x, y] = @get-empty-position()
-    @cells[y][x] = type
+    {x: x, y: y} = @get-empty-position()
+    @cells[x][y] = type
 
   get-width: ->
     unless @width?

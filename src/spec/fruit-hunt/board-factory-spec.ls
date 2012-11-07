@@ -28,7 +28,6 @@ suite "BoardFactory", ->
       board.get-height().should.equal size
 
     test 'should pass bot-ids through to the board-factory', ->
-      # FIXME this hung last time
       args = args-with()
       board = BoardFactory.create-board(args)
       _.keys board._bots .should.eql args.bot-ids
@@ -125,7 +124,7 @@ suite "BoardFactory", ->
       ]
       factory.width = factory.height = 2
       bot-id = args.bot-ids[0]
-      factory.get-board().get-position(bot-id).should.eql [1, 1]
+      factory.get-board().get-position(bot-id).should.eql {x: 1, y: 1}
 
     test 'should ensure both bots start in the same place', ->
       args = args-with()
