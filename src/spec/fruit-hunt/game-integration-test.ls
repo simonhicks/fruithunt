@@ -17,30 +17,11 @@ suite 'Game integration test', ->
     id: 'Slow and steady'
     log-path: 'test.log'
     code: '''
-    function report_board() {
-      trace("BOARD: " + JSON.stringify(get_board()));
-    }
-
-    function report_position() {
-      trace("POSITION: [" + get_my_x() + ", " + get_my_y() + "]");
-    }
-
-    function report_turn() {
-      trace("------ TURN " + turn + " --------");
-    }
-
-    function report_move(move) {
-      trace("DECISION: " + move);
-    }
-
     function new_game() {
       turn = 0;
       reached_x0 = false;
       reached_y0 = false;
       direction = EAST;
-      report_turn();
-      report_board();
-      report_position();
     }
 
     function change_direction() {
@@ -81,13 +62,10 @@ suite 'Game integration test', ->
         this_move =  direction;
       }
 
-      report_turn();
-      report_position();
-      report_move(this_move);
       return this_move;
     }
     '''
 
-  #game = new Game pass-bot, methodical-bot, board-options
+  game = new Game pass-bot, methodical-bot, board-options
   game.play()
   game.get-winner().should.equal methodical-bot.id

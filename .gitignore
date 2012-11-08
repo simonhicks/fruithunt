@@ -3,3 +3,4 @@
 notes
 playground.ls
 *.log
+src/performance-test.ls
