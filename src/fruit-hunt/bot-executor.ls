@@ -108,7 +108,7 @@ exports.BotExecutor = class BotExecutor
 
   _trace: (string) ->
     if @log-path?
-      fs.write-file @log-path, string
+      fs.write-file-sync @log-path, "#string\n"
 
   _create-script: (code) ->
     try

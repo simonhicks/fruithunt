@@ -170,7 +170,7 @@ suite 'BotExecutor', ->
         # use a timeout here so we can avoid passing a callback into the trace function
         set-timeout ~>
           result = fs.read-file-sync @opts.log-path, 'utf-8'
-          result.should.equal expected-string
+          result.should.equal "#expected-string\n"
           @delete-dir-if-present(log-dir)
           done()
         , 15

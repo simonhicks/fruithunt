@@ -2,3 +2,4 @@
 *.js
 notes
 playground.ls
+*.log

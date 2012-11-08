@@ -50,6 +50,7 @@ exports.Board = class Board
     | dir == EAST  => [1, 0]
     | dir == SOUTH => [0, 1]
     | dir == WEST  => [-1, 0]
+    | dir == PASS  => [0, 0]
 
   move-bot: (bot-id, dir) ->
     {x, y} = @get-position bot-id
