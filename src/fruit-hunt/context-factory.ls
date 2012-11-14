@@ -1,39 +1,28 @@
 vm = require \vm
+Script = vm.Script
 fs = require \fs
 path = require \path
-Script = vm.Script
 
 {Board} = require './board'
 
-exports.BotExecutor = class BotExecutor
+# FIXME Change this, so it's a ContextFactory, with a ContextFactory.createContext({bot, board}) method
 
-  @mandatory-args = <[board botId code]>
+exports.ContextFactory = class ContextFactory
+
+  @mandatory-args = <[board botId]>
   @optional-args = <[logPath]>
 
   (options) ->
     @_parse-options options
-    @_create-evaluation-context()
-    @_create-scripts()
     @_validate()
     @_prepare-log-path()
 
-  new-game: ->
-    @_run @_new-game
-
-  make-move: ->
-    @_run @_make-move
-
   _validate: ->
     @_validate-bot-id()
-    @_validate-make-move-present()
 
   _validate-bot-id: ->
-    unless @board.has-bot @bot-id
-      throw new Error "Invalid botId '#{@bot-id}'"
-
-  _validate-make-move-present: ->
-    if ("typeof make_move" |> @_create-script |> @_run) isnt 'function'
-      throw new Error "Invalid argument. code doesn't define make_move() function"
+    unless @board.has-bot @botId
+      throw new Error "Invalid bot id '#{@botId}'"
 
   _prepare-log-path: ->
     p = path.dirname @log-path
@@ -51,27 +40,7 @@ exports.BotExecutor = class BotExecutor
       if options[field]?
         @[field] = options[field]
 
-  _get-opponent-id: ->
-    @_opponent ?= @board.get-opponent @bot-id
-
-  _create-evaluation-context: ->
-    @code |> @_create-script |> @_run
-
-  _create-scripts: ->
-    @_make-move = @_create-script('make_move();')
-    @_new-game = @_create-script("if (typeof new_game === 'function') new_game();")
-
-  _run: (script) ->
-    try
-      script.run-in-context @_get-context()
-    catch err
-      @_code-error err
-
-  _code-error: (err) ->
-    msg = "Invalid code for bot #{@bot-id}: #{@code} raised the following error '#err'"
-    throw new Error msg
-
-  _get-context: ->
+  get-context: ->
     @_context ?= vm.create-context(
       # Constants
       WIDTH: @board.get-width()
@@ -82,6 +51,7 @@ exports.BotExecutor = class BotExecutor
       WEST: Board.WEST
       TAKE: Board.TAKE
       PASS: Board.PASS
+
       # Functions
       get_board: @board.get-board
       get_my_x: ~>
@@ -106,15 +76,9 @@ exports.BotExecutor = class BotExecutor
         @_trace string
     )
 
+  _get-opponent-id: ->
+    @_opponent ?= @board.get-opponent @bot-id
+
   _trace: (string) ->
     if @log-path?
       fs.write-file-sync @log-path, "#string\n"
-
-  _create-script: (code) ->
-    try
-      new Script code, @_get-filename()
-    catch err
-      @_code-error err
-
-  _get-filename: ->
-    @_filename ?= "#{@bot-id}.bot.js"

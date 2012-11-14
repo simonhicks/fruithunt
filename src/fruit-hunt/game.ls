@@ -1,4 +1,4 @@
-{BoardFactory,BotExecutor} = require '../fruit-hunt'
+{BoardFactory,ContextFactory} = require '../fruit-hunt'
 
 exports.Game = class Game
 
@@ -8,33 +8,29 @@ exports.Game = class Game
 
   @TURN_LIMIT = 1000000
 
-  (player1, player2, {max-size,min-size}:board-options={}) ->
-    unless player1? && player2?
+  (@bot1, @bot2, {max-size,min-size}:board-options={}) ->
+    unless @bot1? && @bot2?
       throw new Error "Missing mandatory arg: please supply 2 bots"
 
     @board = BoardFactory.create-board do
       max-size: max-size
       min-size: min-size
-      bot-ids: [player1.id, player2.id]
+      bot-ids: [@bot1.id, @bot2.id]
 
-    @player1 = @_create-bot-executor player1
-    @player2 = @_create-bot-executor player2
+    @_assign-context @bot1
+    @_assign-context @bot2
 
-    @_turn-count = 0
+    #@_turn-count = 0
 
-  _create-bot-executor: ({id,code,log-path}:bot-options={}) ->
-    bot-exec = new BotExecutor do
-      bot-id: id
-      code: code
-      log-path: log-path
-      board: @board
-    bot-exec.new-game()
-    bot-exec
+  _assign-context: ({id, log-path}:bot) ->
+    cf = new ContextFactory bot-id: id, board: @board, log-path: log-path
+    bot.set-new-context cf.get-context()
+    bot.new-game()
 
-  do-turn: ->
+  do-turn: ~>
     moves = {}
-    moves[@player1.bot-id] = @player1.make-move()
-    moves[@player2.bot-id] = @player2.make-move()
+    moves[@bot1.id] = @bot1.make-move()
+    moves[@bot2.id] = @bot2.make-move()
     @board.handle-turn moves
 
   get-winner: ->
@@ -46,4 +42,6 @@ exports.Game = class Game
   play: ->
     until (winner = @get-winner())?
       @do-turn!
+    @bot1.reset-context()
+    @bot2.reset-context()
     winner

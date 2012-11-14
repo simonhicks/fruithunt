@@ -1,13 +1,17 @@
 should = require \should
 _ = require \underscore
+vm = require \vm
 
-{BoardFactory,Game,Board,BotExecutor} = require '../../fruit-hunt'
+{BoardFactory,Game,Board,ContextFactory,Bot} = require '../../fruit-hunt'
 
 with-stub = (klass, method, stub-fn, code) ->
   old-impl = klass::[method]
   klass::[method] = stub-fn
   code()
   klass::[method] = old-impl
+
+make-bot = (id, code) ->
+  new Bot id: id, code: code
 
 suite 'Game', ->
   setup ->
@@ -17,56 +21,67 @@ suite 'Game', ->
       else
         [NORTH, EAST, SOUTH, WEST][Math.random() |> (* 4) |> Math.floor]
 
-    @bill =
-      id: 'Bill'
-      code: make_move.to-string()
+    @bill = make-bot 'Bill', make_move.to-string()
 
-    @bob =
-      id: 'Bob'
-      code: make_move.to-string()
+    @bob = make-bot 'Bob', make_move.to-string()
 
   test "uses the constructor args to create a board containing the bots", ->
     @game = new Game @bill, @bob
     @game.board.should.be.an.instance-of Board
 
-  test "uses the constructor args to construct bot executors", ->
+  test "uses the constructor args to construct a context for each bot", ->
     @game = new Game @bill, @bob
-    @game.player1.should.be.an.instance-of BotExecutor
-    @game.player2.should.be.an.instance-of BotExecutor
+    @game.bot1.get-context().should.not.eql null
+    @game.bot2.get-context().should.not.eql null
+
+  test "should pass a bot's id & log-path through to the context factory", ->
+    stub = ->
+      vm.create-context log-path: @log-path, bot-id: @bot-id
+
+    @bill.log-path = 'path-to-log.txt'
+    with-stub ContextFactory, 'getContext', stub, ~>
+      @game = new Game @bill, @bob
+      @bill.get-context().log-path.should.equal @bill.log-path
+      @bill.get-context().bot-id.should.equal @bill.id
 
   test "throws an error when there are less than 2 bots", ->
     (-> new Game @bill).should.throw-error(/2 bots/)
 
   test 'should call new_game() on each bot-executor at the start of each game', ->
-    stub = ->
-      @new-game-called = true
+    @bob = make-bot 'Bob', '''
+      function make_move() { return null; }
+      function new_game() { bob_new_game_called = true; }
+      '''
+    @bill = make-bot 'Bill', '''
+      function make_move() { return null; }
+      function new_game() { bill_new_game_called = true; }
+      '''
 
-    with-stub BotExecutor, 'newGame', stub, ~>
-      @game = new Game @bill, @bob
+    @game = new Game @bill, @bob
 
-    @game.player1.new-game-called.should.equal true
-    @game.player2.new-game-called.should.equal true
+    @bill.get-context().bill_new_game_called.should.equal true
+    @bob.get-context().bob_new_game_called.should.equal true
 
   test 'should call make-move() once on each bot for each turn', ->
-    counter = ->
-      @make-move-called ?= 0;
-      @make-move-called++
-      Board.EAST
+    var make-move-called
+    counter = function make_move
+      if typeof make-move-called == 'undefined'
+        make-move-called := 0;
+      make-move-called := make-move-called + 1
+      EAST
 
-    with-stub BotExecutor, 'makeMove', counter, ~>
-      @game = new Game @bill, @bob
-      @game.do-turn()
-      @game.do-turn()
-      @game.do-turn()
+    @bill = make-bot 'Bill', counter.to-string()
+    @bob = make-bot 'Bob', counter.to-string()
 
-    @game.player1.make-move-called.should.equal 3
-    @game.player2.make-move-called.should.equal 3
+    @game = new Game @bill, @bob
+    _.times 3, @game.do-turn
+
+    @bill.get-context().make-move-called.should.equal 3
+    @bob.get-context().make-move-called.should.equal 3
 
   test 'should pass the result of make-move on to the board', ->
-    make-bot = (id) ->
-      id: id
-      code: "function make_move(){ return '#id'; }"
-    game = new Game make-bot(\Bill), make-bot(\Bob)
+    mm = -> "function make_move(){ return '#{it}'; }"
+    game = new Game make-bot(\Bill, mm \Bill), make-bot(\Bob, mm \Bob)
 
     var received
     result-storer = (stuff) ->
@@ -90,12 +105,13 @@ suite 'Game', ->
     count.should.equal 2
 
   test 'should abandon a game after TURN_LIMIT moves', ->
-    count = 0
-    counter = ->
-      ++count
+    throw new Error "TURN_LIMIT test doesn't test anything... it should test both the incrementation of _turn-count AND the actual test"
 
-    with-stub Board, 'getWinner', counter, ~>
-      @game = new Game @bill, @bob
-      @game._turn-count = Game.TURN_LIMIT
-      @game.get-winner().should.equal false
-      count.should.equal 0
+  test "should reset bot context's after a bot has won", ->
+    @game = new Game @bill, @bob
+    stub = ~> @bill.id
+
+    with-stub Board, 'getWinner', stub, ~>
+      @game.play()
+      (@bill.get-context() == null).should.equal true
+      (@bob.get-context() == null).should.equal true
