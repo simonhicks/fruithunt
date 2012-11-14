@@ -9,15 +9,13 @@ path = require \path
 
 exports.ContextFactory = class ContextFactory
 
-  @mandatory-args = <[board botId]>
-  @optional-args = <[logPath]>
-
-  (options) ->
-    @_parse-options options
+  ({@board,{id,@log-path}:bot={}}) ->
+    @bot-id = id
     @_validate()
     @_prepare-log-path()
 
   _validate: ->
+    @_validate-mandatory-args()
     @_validate-bot-id()
 
   _validate-bot-id: ->
@@ -29,16 +27,14 @@ exports.ContextFactory = class ContextFactory
     unless fs.exists-sync p
       fs.mkdir-sync p
 
-  _parse-options: (options) ->
-    for field in @@mandatory-args
-      if options[field]?
-        @[field] = options[field]
-      else
-        throw new Error "Missing mandatory arg #field"
+  _validate-mandatory-args: ->
+    unless @board?
+      @_missing-arg \board
+    unless @bot-id?
+      @_missing-arg \bot
 
-    for field in @@optional-args
-      if options[field]?
-        @[field] = options[field]
+  _missing-arg: (field) ->
+    throw new Error "Missing mandatory arg #field"
 
   get-context: ->
     @_context ?= vm.create-context(

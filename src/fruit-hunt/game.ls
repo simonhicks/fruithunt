@@ -20,10 +20,10 @@ exports.Game = class Game
     @_assign-context @bot1
     @_assign-context @bot2
 
-    #@_turn-count = 0
+    @_turn-count = 0
 
-  _assign-context: ({id, log-path}:bot) ->
-    cf = new ContextFactory bot-id: id, board: @board, log-path: log-path
+  _assign-context: (bot) ->
+    cf = new ContextFactory bot: bot, board: @board
     bot.set-new-context cf.get-context()
     bot.new-game()
 
@@ -31,10 +31,11 @@ exports.Game = class Game
     moves = {}
     moves[@bot1.id] = @bot1.make-move()
     moves[@bot2.id] = @bot2.make-move()
+    ++@_turn-count
     @board.handle-turn moves
 
   get-winner: ->
-    if ++@_turn-count >= @@TURN_LIMIT
+    if @_turn-count >= @@TURN_LIMIT
       false
     else
       @board.get-winner()

@@ -104,8 +104,15 @@ suite 'Game', ->
 
     count.should.equal 2
 
-  test 'should abandon a game after TURN_LIMIT moves', ->
-    throw new Error "TURN_LIMIT test doesn't test anything... it should test both the incrementation of _turn-count AND the actual test"
+  test 'should declare a game to be a draw after TURN_LIMIT moves', ->
+    Game.TURN_LIMIT = 3
+    @game = new Game @bill, @bob
+    # after 2 turns there's no winner
+    _.times 2, ~> @game.do-turn()
+    (@game.get-winner() == undefined).should.equal true
+    # ... but after a third, the limit has been reached, so it's a draw
+    @game.do-turn()
+    @game.get-winner().should.equal false
 
   test "should reset bot context's after a bot has won", ->
     @game = new Game @bill, @bob
