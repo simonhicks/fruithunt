@@ -9,8 +9,7 @@ path = require \path
 
 exports.ContextFactory = class ContextFactory
 
-  ({@board,{id,@log-path}:bot={}}) ->
-    @bot-id = id
+  ({@board,{id: @bot-id ,@log-path}:bot={}}) ->
     @_validate()
     @_prepare-log-path()
 
