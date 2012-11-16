@@ -9,8 +9,6 @@ child_process = require \child_process
 {BoardFactory, Board} = require '../../fruit-hunt'
 {NORTH,EAST,SOUTH,WEST,TAKE,PASS} = Board
 
-# FIXME add ContextFactory.createContext({bot, board})
-
 suite 'ContextFactory', ->
   setup ->
     @bot-ids = <[bill ben]>
@@ -19,6 +17,14 @@ suite 'ContextFactory', ->
     @opts =
       board: board
       bot: @the-bot
+
+  test 'should have a createContext class method', ->
+    hard-way = new ContextFactory(@opts).get-context()
+    easy-way = ContextFactory.create-context(@opts)
+
+    _.keys(easy-way).should.eql _.keys(hard-way)
+    get-values = -> it |> _.values |> _.filter(_, -> typeof it != 'function')
+    get-values(easy-way).should.eql get-values(hard-way)
 
   suite 'on initialization,', ->
 

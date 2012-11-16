@@ -5,9 +5,10 @@ path = require \path
 
 {Board} = require './board'
 
-# FIXME Change this, so it's a ContextFactory, with a ContextFactory.createContext({bot, board}) method
-
 exports.ContextFactory = class ContextFactory
+
+  @create-context = (opts) ->
+    new ContextFactory(opts).get-context()
 
   ({@board,{id: @bot-id ,@log-path}:bot={}}) ->
     @_validate()

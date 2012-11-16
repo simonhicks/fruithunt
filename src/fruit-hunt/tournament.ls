@@ -4,6 +4,11 @@ _ = require \underscore
 exports.Tournament = class Tournament
   @DEFAULT_ROUNDS = 10
 
+  @run = (opts) ->
+    instance = new this(opts)
+    instance.play()
+    instance.get-results()
+
   ({@bots,@rounds,@board-options}) ->
     @_points = {}
     @_validate-bots()

@@ -55,15 +55,7 @@ suite 'Tournament', ->
 
   suite 'when playing', ->
     setup ->
-      @with-stubbed-game = (code) ->
-        old-play = Game.play
-        Game.play = (...args) ->
-          @call-list ?= []
-          @call-list.push args
-          args.sort()[1].id
-        code()
-        Game.play = old-play
-
+      # state
       @bots =
         * new Bot id: \a code: make_move.to-string()
         * new Bot id: \b code: make_move.to-string()
@@ -71,24 +63,47 @@ suite 'Tournament', ->
         * new Bot id: \d code: make_move.to-string()
       @rounds = 3
       @board-options = foo: \foo
-      @tourney = @create-instance rounds: @rounds, bots: @bots, board-options: @board-options
+      @opts = rounds: @rounds, bots: @bots, board-options: @board-options
+      @tourney = @create-instance @opts
 
-    test 'makes each bot play each other bot N times', ->
-      # each bot plays each other bot twice...
-      expected-games = @rounds * _.reduce [@bots.length - 1 to 1 by -1], (+), 0
+      # helpers
+      @with-stubbed-game = (code) ->
+        old-play = Game.play
+        Game.play = (...args) ->
+          @call-list ?= []
+          @call-list.push args
+          args.sort()[1].id
 
-      @with-stubbed-game ~>
-        @tourney.play()
+        code()
+
+        Game.play = old-play
+        Game.call-list = null
+
+      @assert-number-of-games-played = ~>
+        # each bot plays each other bot twice...
+        expected-games = @rounds * _.reduce [@bots.length - 1 to 1 by -1], (+), 0
         Game.call-list.should.have.length expected-games
 
-    test 'ranks the bots in the order of the number of games they won', ->
-      # the bot with the alphabetically later id wins
-      expected-order = _.map @bots, (.id) .reverse
+      @assert-result-order = (results) ~>
+        # the bot with the alphabetically later id wins
+        expected-order = _.map @bots, (.id) .reverse
+        sorted-ids = _.map @tourney.results, (.id)
+        sorted-ids.should.eql expected-order
 
+    test 'exposes a Tournament.run() helper', ->
+      @with-stubbed-game ~>
+        results = Tournament.run(@opts)
+        @assert-number-of-games-played()
+
+    test 'makes each bot play each other bot N times', ->
       @with-stubbed-game ~>
         @tourney.play()
-        sorted-ids = _.map @tourney.get-results(), (.id)
-        sorted-ids.should.eql expected-order
+        @assert-number-of-games-played()
+
+    test 'ranks the bots in the order of the number of games they won', ->
+      @with-stubbed-game ~>
+        @tourney.play()
+        @assert-result-order @tourney.get-results()
 
     test 'passes the board options through to the game', ->
       @with-stubbed-game ~>
