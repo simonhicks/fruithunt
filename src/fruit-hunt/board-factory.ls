@@ -79,4 +79,4 @@ exports.BoardFactory = class BoardFactory
     range = max - min
     @random() |> (* range) |> (+ min) |> Math.floor
 
-  random: Math.random # alias so we can test properly
+  random: Math.random # this is an alias so we can test properly

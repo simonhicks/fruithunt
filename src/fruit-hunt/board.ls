@@ -161,15 +161,18 @@ exports.Board = class Board
         @move-bot bot-id, decision
     takes
 
-  # takes is a list of bot-ids (maximum 2) for the bots who have chosen 'take' as the move
+  # taker_ids is a list of bot-ids (maximum 2) for the bots who have chosen 'take' as the move
   # for this turn
-  _handle-takes: (takes) ->
-    takes = _ takes .map ~> {bot-id: it, pos: @get-position it}
-    if takes.length > 1 && takes[0].pos.x is takes[1].pos.x && takes[0].pos.y is takes[1].pos.y
+  _handle-takes: (taker_ids) ->
+    takes = _.map taker_ids, ~> {bot-id: it, pos: @get-position it}
+    if takes.length > 1 && @_takes_are_same(takes)
       @_take-item takes[0].pos, takes[0].bot-id, takes[1].bot-id
     else
       for {bot-id, pos} in takes
         @_take-item pos, bot-id
+
+  _takes_are_same: ([take_1, take_2]) ->
+    take_1.pos.x is take_2.pos.x and take_1.pos.y is take_2.pos.y
 
   _take-item: (position, ...bot-ids) ->
     if (type = @get-item-at position)
