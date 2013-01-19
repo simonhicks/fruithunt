@@ -22,6 +22,8 @@ exports.Game = class Game
 
     @_turn-count = 0
 
+  # FIXME this should be in Bot... here, we should just be calling bot.initialize(@board),
+  # so the bot knows how to prepare itself for the game
   _assign-context: (bot) ->
     cf = new ContextFactory bot: bot, board: @board
     bot.set-new-context cf.get-context()
